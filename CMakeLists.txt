@@ -6,10 +6,16 @@ cmake_minimum_required(VERSION 3.23)
 
 project(partition-table)
 
-# Add windows exe extension.
-set(TOIT_EXEC "toit.run${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to run the tests")
-set(TPKG_EXEC "toit.pkg${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to install the packages")
-set(TCOMPILE_EXEC "toit.compile${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to check the syntax")
+set(TOITPKG
+    "toit.pkg${CMAKE_EXECUTABLE_SUFFIX}"
+    CACHE
+    FILEPATH
+    "The executable used to install packages")
+set(TOITC
+    "toit.compile${CMAKE_EXECUTABLE_SUFFIX}"
+    CACHE
+    FILEPATH
+    "The executable used to compile programs and check the syntax")
 
 set(DEFAULT_SDK_VERSION CACHE STRING "The default SDK version to use")
 
@@ -26,6 +32,10 @@ configure_file(
   bin/version.toit.in
   ${CMAKE_CURRENT_SOURCE_DIR}/bin/version.toit
   @ONLY)
+
+include("tools/toit.cmake")
+
+add_custom_target(build)
 
 enable_testing()
 add_subdirectory(bin)
