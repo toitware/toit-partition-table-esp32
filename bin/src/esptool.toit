@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Toitware ApS. All rights reserved.
 // Use of this source code is governed by an MIT-style license that can be
-// found in the lib/LICENSE file.
+// found in the LICENSE file.
 
 import host.pipe
 import host.file
@@ -14,7 +14,6 @@ class Esptool:
   port_/string?
   partition_table_offset_/int
   partition_table_size_/int
-
 
   constructor .path_ --port/string?=null --partition_table_offset/int --partition_table_size/int:
     port_ = port
@@ -33,11 +32,11 @@ class Esptool:
 
   read_flash --offset/int --size/int --out/string:
     args := [
-      "-b", "460800",
-      "read_flash",
-      "$offset",
-      "$size",
-      out,
+        "-b", "460800",
+        "read_flash",
+        "$offset",
+        "$size",
+        out,
     ]
     if port_:
       args += ["--port", port_]
@@ -45,11 +44,11 @@ class Esptool:
 
   write_flash --offset/int --path/string:
     args := [
-      "--after", "no_reset",
-      "-b", "460800",
-      "write_flash",
-      "$offset",
-      path,
+        "--after", "no_reset",
+        "-b", "460800",
+        "write_flash",
+        "$offset",
+        path,
     ]
     if port_:
       args += ["--port", port_]

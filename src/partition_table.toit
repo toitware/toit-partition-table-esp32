@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Toitware ApS.
 // Use of this source code is governed by an MIT-style license that can be
-// found in the lib/LICENSE file.
+// found in the LICENSE file.
 
 import binary show LITTLE-ENDIAN
 import crypto.md5
@@ -74,11 +74,9 @@ class PartitionTable:
     return result
 
   encode-md5-partition_ partitions/ByteArray -> ByteArray:
-    checksum := md5.Md5
-    checksum.add partitions
     partition := ByteArray 32: 0xff
     partition.replace 0 MAGIC-BYTES-MD5
-    partition.replace 16 checksum.get
+    partition.replace 16 (md5.md5 partitions)
     return partition
 
   do [block]:
