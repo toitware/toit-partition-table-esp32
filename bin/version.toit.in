@@ -1,0 +1,13 @@
+// Copyright (C) 2023 Toitware ApS.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file.
+
+/**
+This .toit file is automatically overwritten by the build system.
+It is ignored by git.
+*/
+
+/**
+The version of the executable.
+*/
+PARTITION-TABLE-VERSION/string ::= "@PARTITION_TABLE_GIT_VERSION@"

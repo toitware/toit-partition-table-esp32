@@ -1,0 +1,2 @@
+name: partition-table
+description: Tools to manipulate the partition table of an ESP32.
