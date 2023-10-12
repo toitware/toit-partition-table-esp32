@@ -3,6 +3,18 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      sign_macos:
+        description: Sign the macOS binary
+        type: boolean
+        required: true
+        default: false
+      sign_windows:
+        description: Sign the Windows binary
+        type: boolean
+        required: true
+        default: false
   push:
     branches:
       - "*"
@@ -10,6 +22,7 @@ on:
 
 env:
   TOIT_VERSION: v2.0.0-alpha.114
+  APP_NAME: partitions
 
 jobs:
   build:
@@ -103,4 +116,139 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: binaries-${{ runner.os }}
-          path: build/partitions${{ env.BIN_EXTENSION }}
+          path: build/${{env.APP_NAME}}${{ env.BIN_EXTENSION }}
+
+      - name: Upload release Linux executable
+        if: github.event_name == 'release' && runner.os == 'Linux'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/${{env.APP_NAME}}
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true
+
+  sign-windows:
+    runs-on: windows-signing || inputs.sign_windows
+    needs: [build]
+    if: github.event_name == 'release'
+    steps:
+      - name: Clean workspace
+        run: |
+          rm -Recurse -Force ${{ github.workspace }}\*
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: binaries-Windows
+          path: in
+
+      - name: Copy to build
+        run: |
+          mkdir build/windows
+          copy in/${{env.APP_NAME}}.exe build/${{env.APP_NAME}}.exe
+
+      - name: Sign ${{env.APP_NAME}}
+        working-directory: ./build
+        # Signs in place.
+        run: |
+          signtool sign /debug /n "Toitware ApS" /t http://timestamp.digicert.com/ $PWD/${{env.APP_NAME}}.exe
+
+      - name: Copy signed to out
+        run: |
+          mkdir out
+          copy build/${{env.APP_NAME}}.exe out/${{env.APP_NAME}}.exe
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-Windows-signed
+          path: ./out
+
+      - name: Upload release Windows executable
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: out/${{env.APP_NAME}}.exe
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true
+
+  sign_macos:
+    runs-on: macos-latest
+    needs: [build]
+    if: github.event_name == 'release' || inputs.sign_macos
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: binaries-macOS
+          path: in
+
+      - name: Install dependencies
+        run: |
+          set -e
+          brew install create-dmg
+          brew install zip
+
+      - name: Copy to build
+        run: |
+          mkdir -p build
+          cp in/${{env.APP_NAME}} build/${{env.APP_NAME}}
+
+      - name: Setup binary rights
+        run: |
+          chmod +x build/${{env.APP_NAME}}
+
+      - name: Sign and notarize
+        uses: toitlang/action-macos-sign-notarize@v1.0.0
+        with:
+          certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          certificate-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          username: ${{ secrets.AC_USERNAME }}
+          password: ${{ secrets.AC_PASSWORD }}
+          apple-team-id: 33DS2ZRDST
+          # Signs in place.
+          app-path: build/${{env.APP_NAME}}
+
+      - name: Create out folder
+        run: |
+          mkdir -p out
+
+      - name: Create a DMG
+        run: |
+          # Use an empty directory as source so we don't accidentally add other files than the
+          # ${{env.APP_NAME}} binary.
+          set -e
+          mkdir empty
+          create-dmg \
+              --volname "${{env.APP_NAME}}" \
+              --add-file ${{env.APP_NAME}} build/${{env.APP_NAME}} 0 0 \
+              out/${{env.APP_NAME}}.dmg \
+              empty
+
+      - name: Create a ZIP
+        run: |
+          zip -j out/${{env.APP_NAME}}.zip build/${{env.APP_NAME}}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-macOS-signed
+          path: ./out
+
+      - name: Upload release macOS executable DMG
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: out/${{env.APP_NAME}}.dmg
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true
+
+      - name: Upload release macOS executable ZIP
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: out/${{env.APP_NAME}}.zip
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true
