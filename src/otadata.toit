@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Toitware ApS.
 // Use of this source code is governed by an MIT-style license that can be
-// found in the lib/LICENSE file.
+// found in the LICENSE file.
 
 import binary show LITTLE_ENDIAN
 import crypto.crc show Crc
@@ -42,12 +42,12 @@ class SelectEntry:
   */
   static STATE_IMAGE_PENDING_VERIFY ::= 1
   /**
-  The image has been marked as workable.
+  The image has been marked as working.
   The partition can boot and work without limits.
   */
   static STATE_IMAGE_VALID ::= 2
   /**
-  The image was neither marked as workable or non-workable.
+  The image was neither marked as working nor non-working.
   The bootloader will not use this image again.
   */
   static STATE_IMAGE_ABORTED ::= 3
@@ -69,7 +69,6 @@ class SelectEntry:
     offset += 4
     seq_label_bytes := bytes[offset..offset + 20]
     offset += 20
-    seq_label := seq_label_bytes.to_string_non_throwing
     ota_state := LITTLE_ENDIAN.int32 bytes offset
     offset += 4
     crc := LITTLE_ENDIAN.uint32 bytes offset

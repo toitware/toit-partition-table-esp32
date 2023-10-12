@@ -1,6 +1,6 @@
 # ESP32 partition table parser
 
-A toit package and binary for handling ESP32 partition tables.
+A Toit package and binary for handling ESP32 partition tables.
 
 ## Package
 

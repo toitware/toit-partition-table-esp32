@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Toitware ApS. All rights reserved.
 // Use of this source code is governed by an MIT-style license that can be
-// found in the lib/LICENSE file.
+// found in the LICENSE file.
 
 import cli
 
@@ -15,11 +15,12 @@ main args:
   // as that would make it available to all sub commands.
   // However, being able to write `app --version` is nice, so we handle
   // that here.
-  if args.size == 1 and args[0] == "--version":
+  if args.size == 1 and
+     (args[0] == "--version" or args[0] == "-v"):
     print_version
 
   cmd := cli.Command "root"
-      --short_help="Commands to manage Ota partitions on the ESP32."
+      --short_help="Commands to manage OTA partitions on the ESP32."
       --options=[
         cli.Option "esptool"
             --short_help="Path to esptool.py."
@@ -116,8 +117,10 @@ main args:
 with_esptool parsed/cli.Parsed [block]:
   esptool_path := parsed["esptool"]
   port := parsed["port"]
-  partition_table_offset_str := parsed["partition-table-offset"]
-  partition_table_size_str := parsed["partition-table-size"]
+  partition_table_offset_str/string := parsed["partition-table-offset"]
+  partition_table_size_str/string := parsed["partition-table-size"]
+  partition_table_offset_str = partition_table_offset_str.to-ascii-lower
+  partition_table_size_str = partition_table_size_str.to-ascii-lower
 
   partition_table_offset := partition_table_offset_str.starts_with "0x"
       ? int.parse partition_table_offset_str[2..] --radix=16
@@ -160,6 +163,7 @@ print_otadata parsed/cli.Parsed:
 
     otadata := Otadata.decode otadata_bytes
     2.repeat:
+      if it == 1: print
       entry/SelectEntry := otadata.select_entries[it]
       print """
       otadata$it:
@@ -167,7 +171,6 @@ print_otadata parsed/cli.Parsed:
         label: $entry.label.to_string_non_throwing
         state: $entry.state ($(SelectEntry.state_stringify entry.state))
         crc: $(%x entry.crc)"""
-      if it == 0: print
 
 read_partition parsed/cli.Parsed:
   with_esptool parsed: | esptool/Esptool|
@@ -220,8 +223,6 @@ set_ota_state parsed/cli.Parsed:
 
     otadata := Otadata.decode otadata_bytes
 
-    // For simplicity we always update entry 0 for ota_0 and entry 1 for ota_1.
-    // In theory
     index := select_entry_index or (partition_name == "ota_0" ? 0 : 1)
     sequence_number := otadata.select_entries[index].sequence_number
     if make_active:
@@ -246,7 +247,6 @@ set_ota_state parsed/cli.Parsed:
     print "new-state: $otadata"
     new_otadata_bytes := otadata.encode
 
-    new_one := Otadata.decode new_otadata_bytes
     esptool.write_flash
         --offset=table.find_otadata.offset
         --bytes=new_otadata_bytes
