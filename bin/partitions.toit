@@ -38,21 +38,11 @@ main args:
 
   print_partitions_cmd := cli.Command "print-partitions"
       --short_help="Print the partition table."
-      --options=[
-        cli.Option "esptool"
-            --short_help="Path to esptool.py."
-            --required
-      ]
       --run=:: print_partition_table it
   cmd.add print_partitions_cmd
 
   print_otadata_cmd := cli.Command "print-otadata"
       --short_help="Print the otadata partition."
-      --options=[
-        cli.Option "esptool"
-            --short_help="Path to esptool.py."
-            --required
-      ]
       --run=:: print_otadata it
   cmd.add print_otadata_cmd
 
