@@ -4,8 +4,11 @@
 
 import cli
 
+import host.file
+import host.os
 import partition_table show *
 import partition-table.otadata show *
+import system
 
 import .src.esptool
 import .version
@@ -23,8 +26,7 @@ main args:
       --short_help="Commands to manage OTA partitions on the ESP32."
       --options=[
         cli.Option "esptool"
-            --short_help="Path to esptool.py."
-            --required,
+            --short_help="Path to esptool.py.",
         cli.Option "port"
             --short_name="p"
             --short_help="Serial port to use.",
@@ -106,6 +108,38 @@ main args:
 
 with_esptool parsed/cli.Parsed [block]:
   esptool_path := parsed["esptool"]
+  if not esptool_path:
+    // Try to find the esptool.py script in the PATH.
+    path-var := os.env["PATH"]
+    if not path-var:
+      print "Can't find esptool. PATH environment variable not set."
+      exit 1
+    env-split-char := ?
+    exe-extension := ?
+    if system.platform == system.PLATFORM-WINDOWS:
+      env-split-char = ";"
+      exe-extension = ".exe"
+    else:
+      env-split-char = ":"
+      exe-extension = ""
+
+    bin-paths := path-var.split env-split-char
+    for i := 0; i < bin-paths.size; i++:
+      bin-path := bin-paths[i]
+      py-path := "$bin-path/esptool.py"
+      if file.is-file py-path:
+        esptool_path = py-path
+        break
+      exe-path := "$bin-path/esptool$exe-extension"
+      if file.is-file exe-path:
+        esptool_path = exe-path
+        break
+    if not esptool_path:
+      // Just try the executable.
+      // It's probably not going to work, but it's better than nothing.
+      esptool_path = "esptool$exe-extension"
+      print "Can't find esptool. Trying to use '$esptool_path'."
+
   port := parsed["port"]
   partition_table_offset_str/string := parsed["partition-table-offset"]
   partition_table_size_str/string := parsed["partition-table-size"]
