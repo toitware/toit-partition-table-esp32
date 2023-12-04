@@ -4,7 +4,7 @@
 
 import host.directory
 
-with_tmp_directory [block]:
+with-tmp-directory [block]:
   tmpdir := directory.mkdtemp "/tmp/ota_v1_v2-"
   try:
     block.call tmpdir
