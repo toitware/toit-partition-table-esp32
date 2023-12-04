@@ -22,8 +22,8 @@ main args:
      (args[0] == "--version" or args[0] == "-v"):
     print-version
 
-  cmd := cli.Command "root"
-      --short-help="Commands to manage OTA partitions on the ESP32."
+  cmd := cli.Command "partitions"
+      --short-help="A tool to manage OTA partitions on the ESP32."
       --options=[
         cli.Option "esptool"
             --short-help="Path to esptool.py.",
@@ -40,11 +40,21 @@ main args:
 
   print-partitions-cmd := cli.Command "print-partitions"
       --short-help="Print the partition table."
+      --examples=[
+        cli.Example "Print the partition table:"
+            --global-priority=1
+            --arguments=""
+      ]
       --run=:: print-partition-table it
   cmd.add print-partitions-cmd
 
   print-otadata-cmd := cli.Command "print-otadata"
       --short-help="Print the otadata partition."
+      --examples=[
+        cli.Example "Print the otadata partition:"
+            --global-priority=1
+            --arguments=""
+      ]
       --run=:: print-otadata it
   cmd.add print-otadata-cmd
 
@@ -61,6 +71,11 @@ main args:
             --short-help="Partition to read."
             --required
       ]
+      --examples=[
+        cli.Example "Read the partition 'ota_0' to 'ota_0.bin':"
+            --global-priority=1
+            --arguments="-o ota_0.bin ota_0"
+      ]
       --run=:: read-partition it
   cmd.add read-cmd
 
@@ -76,6 +91,11 @@ main args:
         cli.Option "partition"
             --short-help="Partition to write."
             --required
+      ]
+      --examples=[
+        cli.Example "Write the partition 'ota_0' from 'ota_0.bin':"
+            --global-priority=1
+            --arguments="-i ota_0.bin ota_0"
       ]
       --run=:: write-partition it
   cmd.add write-cmd
@@ -96,6 +116,11 @@ main args:
         cli.Option "partition"
             --short-help="Partition to set as boot."
             --required,
+      ]
+      --examples=[
+        cli.Example "Set the state of 'ota_0' to 'pending-verify':"
+            --global-priority=1
+            --arguments="--state=pending-verify ota_0"
       ]
       --run=:: set-ota-state it
   cmd.add set-ota-state-cmd
