@@ -112,7 +112,7 @@ with_esptool parsed/cli.Parsed [block]:
     // Try to find the esptool.py script in the PATH.
     path-var := os.env["PATH"]
     if not path-var:
-      print "Can't find esptool. PATH environment variable not set"
+      print "Can't find esptool. PATH environment variable not set."
       exit 1
     env-split-char := ?
     exe-extension := ?
