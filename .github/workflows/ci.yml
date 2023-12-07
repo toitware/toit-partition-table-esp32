@@ -134,7 +134,7 @@ jobs:
 
       - name: Sign Windows binary
         if: runner.os == 'Windows' && (github.event_name == 'release' || inputs.sign_windows)
-        uses: toitlang/action-code-sign@4e9cff3391315e3eeaebfae83c4c80390aebf090
+        uses: toitlang/action-code-sign@a4adedba46f2630ed60a1d6e6aa828ac7038c945 # v1.0.0
         with:
           certificate: ${{ secrets.DIGICERT_CERTIFICATE }}
           api-key: ${{ secrets.DIGICERT_API_KEY }}
