@@ -1,4 +1,17 @@
-# Copyright (C) 2023 Toitware ApS. All rights reserved.
+# Zero-Clause BSD License
+
+# Copyright (C) 2023 Toitware ApS.
+
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted.
+
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
 
 name: CI
 
@@ -119,6 +132,23 @@ jobs:
         run: |
           tar c -zvf build/${{env.APP_NAME}}-linux.tar.gz -C build ${{env.APP_NAME}}
 
+      - name: Sign Windows binary
+        if: runner.os == 'Windows' && (github.event_name == 'release' || inputs.sign_windows)
+        uses: toitlang/action-code-sign@a4adedba46f2630ed60a1d6e6aa828ac7038c945 # v1.0.0
+        with:
+          certificate: ${{ secrets.DIGICERT_CERTIFICATE }}
+          api-key: ${{ secrets.DIGICERT_API_KEY }}
+          certificate-password: ${{ secrets.DIGICERT_PASSWORD }}
+          certificate-fingerprint: ${{ secrets.DIGICERT_FINGERPRINT }}
+          keypair-alias: ${{ vars.DIGICERT_KEYPAIR_ALIAS }}
+          path: build/${{env.APP_NAME}}.exe
+
+      - name: Zip Windows binary
+        if: runner.os == 'Windows'
+        run: |
+          cd build
+          7z a ${{env.APP_NAME}}-windows.zip ${{env.APP_NAME}}.exe
+
       - name: Upload binary artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -132,6 +162,13 @@ jobs:
           name: binaries-Linux-tar
           path: build/${{env.APP_NAME}}-linux.tar.gz
 
+      - name: Upload Windows zip
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-Windows-zip
+          path: build/${{env.APP_NAME}}-windows.zip
+
       - name: Upload release Linux executable
         if: github.event_name == 'release' && runner.os == 'Linux'
         uses: svenstaro/upload-release-action@v2
@@ -141,53 +178,12 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
           overwrite: true
 
-  sign-windows:
-    runs-on: windows-signing
-    needs: [build]
-    if: github.event_name == 'release' || inputs.sign_windows
-    steps:
-      - name: Clean workspace
-        run: |
-          rm -Recurse -Force ${{ github.workspace }}\*
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: binaries-Windows
-          path: in
-
-      - name: Copy to build
-        run: |
-          mkdir build/windows
-          copy in/${{env.APP_NAME}}.exe build/${{env.APP_NAME}}.exe
-
-      - name: Sign ${{env.APP_NAME}}
-        working-directory: ./build
-        # Signs in place.
-        run: |
-          signtool sign /debug /n "Toitware ApS" /t http://timestamp.digicert.com/ $PWD/${{env.APP_NAME}}.exe
-
-      - name: Copy signed to out
-        run: |
-          mkdir out
-          copy build/${{env.APP_NAME}}.exe out/${{env.APP_NAME}}.exe
-
-      - name: Zip signed
-        run: |
-          cd out
-          7z a ${{env.APP_NAME}}-windows.zip ${{env.APP_NAME}}.exe
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: binaries-Windows-signed
-          path: ./out
-
       - name: Upload release Windows executable
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' && runner.os == 'Windows'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: out/${{env.APP_NAME}}-windows.zip
+          file: build/${{env.APP_NAME}}-windows.zip
           tag: ${{ github.event.release.tag_name }}
           overwrite: true
 
