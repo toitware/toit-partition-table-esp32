@@ -58,38 +58,11 @@ jobs:
           fi
           echo "BIN_EXTENSION=$BIN_EXTENSION" >> $GITHUB_ENV
 
-          export NATIVE_DOWNLOAD_DIR="${{ github.workspace }}/downloads"
-          echo "NATIVE_DOWNLOAD_DIR=$NATIVE_DOWNLOAD_DIR" >> $GITHUB_ENV
 
-          export DOWNLOAD_DIR="$PWD/downloads"
-          echo "DOWNLOAD_DIR=$DOWNLOAD_DIR" >> $GITHUB_ENV
-
-          TOIT_SDK_DIR=$DOWNLOAD_DIR/toit
-          echo "TOIT_EXEC=$TOIT_SDK_DIR/bin/toit.run$BIN_EXTENSION" >> $GITHUB_ENV
-          echo "TOITC_EXEC=$TOIT_SDK_DIR/bin/toit.compile$BIN_EXTENSION" >> $GITHUB_ENV
-          echo "TPKG_EXEC=$TOIT_SDK_DIR/bin/toit.pkg$BIN_EXTENSION" >> $GITHUB_ENV
-
-          TOIT_SDK_FILE=toit-$(echo $RUNNER_OS | tr '[:upper:]' '[:lower:]').tar.gz
-          TOIT_SDK_BASE_URL=https://github.com/toitlang/toit/releases
-
-          echo "TOIT_SDK_URL=$TOIT_SDK_BASE_URL/download/$TOIT_VERSION/$TOIT_SDK_FILE" >> $GITHUB_ENV
-
-      - uses: suisei-cn/actions-download-file@v1.6.0
-        name: Download Toit
+      - name: Install Toit
+        uses: toitlang/action-setup@v1
         with:
-          url: ${{ env.TOIT_SDK_URL }}
-          target: ${{ env.NATIVE_DOWNLOAD_DIR }}
-
-      - name: Extract Toit
-        shell: bash
-        run: |
-          cd "$DOWNLOAD_DIR"
-          for f in *.tar.gz; do
-            tar x -f $f
-          done
-          ls $TOIT_EXEC
-          ls $TOITC_EXEC
-          ls $TPKG_EXEC
+          toit-version: ${{ env.TOIT_VERSION }}
 
       # Fetch the dependencies. Different for each platform.
       - name: Install dependencies - Linux
@@ -111,16 +84,6 @@ jobs:
           choco install ninja
           ninja --version
           cmake --version
-
-      - name: Run cmake
-        shell: bash
-        run: |
-          make rebuild-cmake
-          cmake \
-              -DTOITC="$TOITC_EXEC" \
-              -DTOITPKG="$TPKG_EXEC" \
-              -DTOITRUN="$TOIT_EXEC" \
-              build
 
       - name: Build binaries
         shell: bash
