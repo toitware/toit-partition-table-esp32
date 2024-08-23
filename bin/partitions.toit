@@ -135,7 +135,7 @@ with-esptool parsed/cli.Parsed [block]:
   esptool-path := parsed["esptool"]
   if not esptool-path:
     // Try to find the esptool.py script in the PATH.
-    path-var := os.env["PATH"]
+    path-var := os.env.get "PATH"
     if not path-var:
       print "Can't find esptool. PATH environment variable not set."
       exit 1
