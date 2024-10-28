@@ -31,27 +31,29 @@ class Esptool:
     unreachable
 
   read-flash --offset/int --size/int --out/string:
-    args := [
+    args := []
+    if port_:
+      args += ["--port", port_]
+    args += [
         "-b", "460800",
         "read_flash",
         "$offset",
         "$size",
         out,
     ]
-    if port_:
-      args += ["--port", port_]
     run_ args
 
   write-flash --offset/int --path/string:
-    args := [
+    args := []
+    if port_:
+      args += ["--port", port_]
+    args += [
         "--after", "no_reset",
         "-b", "460800",
         "write_flash",
         "$offset",
         path,
     ]
-    if port_:
-      args += ["--port", port_]
     run_ args
 
   write-flash --offset/int --bytes/ByteArray:
@@ -63,4 +65,6 @@ class Esptool:
   run_ args/List:
     command := path_.ends-with ".py" ? ["python", path_] : [path_]
     command += args
-    pipe.run-program command
+    exit-status := pipe.run-program command
+    if exit-status != 0:
+      throw "esp-tool exited with exit-code $(pipe.exit-code exit-status) and exit-signal $(pipe.exit-signal exit-status)"
