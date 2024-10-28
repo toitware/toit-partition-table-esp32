@@ -39,3 +39,4 @@ add_custom_target(build)
 
 enable_testing()
 add_subdirectory(bin)
+add_subdirectory(tests)
