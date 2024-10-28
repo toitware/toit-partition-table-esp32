@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 .PHONY: all
-all: build
+all: build test
 
 .PHONY: build
 build: rebuild-cmake install-pkgs
-	(cd build && ninja build)
+	cmake --build build --target build
 
 .PHONY: build/CMakeCache.txt
 build/CMakeCache.txt:
@@ -15,7 +15,7 @@ build/CMakeCache.txt:
 
 .PHONY: install-pkgs
 install-pkgs: rebuild-cmake
-	(cd build && ninja download_packages)
+	cmake --build build --target download_packages
 
 # We rebuild the cmake file all the time.
 # We use "glob" in the cmakefile, and wouldn't otherwise notice if a new
@@ -24,4 +24,8 @@ install-pkgs: rebuild-cmake
 .PHONY: rebuild-cmake
 rebuild-cmake:
 	mkdir -p build
-	(cd build && cmake .. -G Ninja)
+	cmake -B build -G Ninja
+
+.PHONY: test
+test: build/CMakeCache.txt install-pkgs
+	cmake --build build --target check
