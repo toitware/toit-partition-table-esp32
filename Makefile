@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 .PHONY: all
-all: build test
+all: build
 
 .PHONY: build
 build: rebuild-cmake install-pkgs
