@@ -15,24 +15,37 @@ main:
   csv-contents := file.read-contents "$program-dir/cvs-test-partitions.cvs"
 
   partition-table-bin := PartitionTable.decode bin-contents
-  partition-table-cvs := PartitionTable.decode-csv csv-contents
+  partition-table-cvs := PartitionTable.decode csv-contents
 
   partitions-bin := partition-table-bin.partitions
   partitions-cvs := partition-table-cvs.partitions
   expect-equals partitions-bin.size partitions-cvs.size
 
-  for i := 0; i < partitions-bin.size; i++:
-    partition-bin/Partition := partitions-bin[i]
-    partition-cvs/Partition := partitions-cvs[i]
-    expect-equals partition-bin.name partition-cvs.name
-    expect-equals partition-bin.type partition-cvs.type
-    expect-equals partition-bin.subtype partition-cvs.subtype
-    expect-equals partition-bin.offset partition-cvs.offset
-    expect-equals partition-bin.size partition-cvs.size
-    expect-equals partition-bin.flags partition-cvs.flags
+  expect-equals-partition-tables partition-table-bin partition-table-cvs
 
   encoded := partition-table-cvs.encode
   if encoded.size > bin-contents.size:
     bin-contents += ByteArray (encoded.size - bin-contents.size): 0xff
 
   expect-equals bin-contents encoded
+
+  encoded-csv := partition-table-bin.encode --csv
+  decoded-cvs := PartitionTable.decode encoded-csv.to-byte-array
+  expect-equals-partition-tables partition-table-bin decoded-cvs
+
+  encoded-csv2 := partition-table-cvs.encode --csv
+  expect-equals encoded-csv encoded-csv2
+
+  print encoded-csv
+
+expect-equals-partition-tables partition-table1/PartitionTable partition-table2/PartitionTable:
+  expect-equals partition-table1.partitions.size partition-table2.partitions.size
+  for i := 0; i < partition-table1.partitions.size; i++:
+    partition1/Partition := partition-table1.partitions[i]
+    partition2/Partition := partition-table2.partitions[i]
+    expect-equals partition1.name partition2.name
+    expect-equals partition1.type partition2.type
+    expect-equals partition1.subtype partition2.subtype
+    expect-equals partition1.offset partition2.offset
+    expect-equals partition1.size partition2.size
+    expect-equals partition1.flags partition2.flags

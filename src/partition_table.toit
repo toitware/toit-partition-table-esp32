@@ -173,7 +173,17 @@ class PartitionTable:
       offset = max offset end
     return offset
 
+  /**
+  Decodes a partition table.
+
+  The given $bytes can be either a binary partition table or a CSV table.
+  */
   static decode bytes/ByteArray -> PartitionTable:
+    if bytes.size > 2 and bytes[..2] == Partition.MAGIC-BYTES:
+      return decode-bin_ bytes
+    return decode-csv_ bytes
+
+  static decode-bin_ bytes/ByteArray -> PartitionTable:
     table := PartitionTable
     checksum := md5.Md5
     cursor := 0
@@ -191,7 +201,7 @@ class PartitionTable:
       cursor = next
     throw "Malformed table - not terminated"
 
-  static decode-csv bytes/ByteArray -> PartitionTable:
+  static decode-csv_ bytes/ByteArray -> PartitionTable:
     // Something like:
     //    # Name,   Type, SubType,  Offset,    Size,     Flags
     //    # bootloader,,  ,         0x001000,  0x007000
@@ -275,6 +285,14 @@ class PartitionTable:
     result.replace cursor md5
     return result
 
+  encode --csv/True -> string:
+    result := "#      Name, Type, SubType,   Offset,     Size, Flags\n"
+    sorted := partitions_.sort: | a b |
+      a.offset.compare-to b.offset
+    sorted.do: | partition/Partition |
+      result += partition.encode --csv-line
+    return result
+
   encode-md5-partition_ partitions/ByteArray -> ByteArray:
     partition := ByteArray 32: 0xff
     partition.replace 0 MAGIC-BYTES-MD5
@@ -286,6 +304,9 @@ class PartitionTable:
 
   do [block]:
     partitions_.do block
+
+  stringify -> string:
+    return encode --csv
 
 class Partition:
   static MAGIC-BYTES ::= #[0xaa, 0x50]
@@ -333,6 +354,39 @@ class Partition:
     result.replace 12 encode-name_
     LITTLE-ENDIAN.put-uint32 result 28 flags
     return result
+
+  encode --csv-line/True -> string:
+    name-string := "$name,".pad 12
+
+    type-string/string := ?
+    if type == TYPE-APP: type-string = "app"
+    else if type == TYPE-DATA: type-string = "data"
+    else: type-string = "0x$(%02x type)"
+    type-string = "$type-string,".pad 5
+
+    subtype-string/string? := null
+    reverse-map/Map := ?
+    if type == TYPE-APP: reverse-map = PartitionTable.PARTITION-SUBTYPES-APP
+    else if type == TYPE-DATA: reverse-map = PartitionTable.PARTITION-SUBTYPES-DATA
+    else: reverse-map = {:}
+    reverse-map.any: | name/string value/int |
+      if value == subtype:
+        subtype-string = name
+        true
+      else:
+        false
+    if not subtype-string: subtype-string = "0x$(%02x subtype)"
+    subtype-string = "$subtype-string,".pad 8
+
+    offset-string := "0x$(%06x offset),"
+    size-string := "0x$(%06x size),"
+
+    flag-entries := []
+    if (flags & PartitionTable.FLAG-ENCRYPTED) != 0: flag-entries.add "encrypted"
+    if (flags & PartitionTable.FLAG-READONLY) != 0: flag-entries.add "readonly"
+    flags-string := flag-entries.join ":"
+
+    return "$name-string $type-string $subtype-string $offset-string $size-string $flags-string\n"
 
   static decode-name_ bytes/ByteArray -> string:
     zero := bytes.index-of 0
