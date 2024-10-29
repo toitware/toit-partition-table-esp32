@@ -2,4 +2,4 @@ name: partition-table
 description: Tools to manipulate the partition table of an ESP32.
 
 environment:
-  sdk: ^2.0.0-alpha.144
+  sdk: ^2.0.0-alpha.161
