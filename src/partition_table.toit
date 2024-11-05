@@ -21,7 +21,7 @@ class PartitionTable:
   /**
   The default app partition.
 
-  The bootloader exetuse the factory app unless there is a partition of type
+  The bootloader execute the factory app unless there is a partition of type
     data/ota.
   */
   static PARTITION-SUBTYPE-APP-FACTORY ::= 0x00
