@@ -13,9 +13,13 @@ main:
   program-dir := fs.dirname program-path
   bin-contents := file.read-contents "$program-dir/cvs-test-partitions.bin"
   csv-contents := file.read-contents "$program-dir/cvs-test-partitions.cvs"
+  csv-no-offsets-contents := file.read-contents "$program-dir/cvs-test-partitions-no-offsets.cvs"
 
   partition-table-bin := PartitionTable.decode bin-contents
   partition-table-cvs := PartitionTable.decode csv-contents
+  partition-table-cvs-no-offsets := PartitionTable.decode csv-no-offsets-contents
+
+  expect-equals-partition-tables partition-table-cvs partition-table-cvs-no-offsets
 
   partitions-bin := partition-table-bin.partitions
   partitions-cvs := partition-table-cvs.partitions
