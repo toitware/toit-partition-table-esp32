@@ -251,8 +251,10 @@ class PartitionTable:
       if offset-string == "":
         if not next-computed-offset: throw "Missing initial offset"
         offset = next-computed-offset
-      else if offset-string.starts-with "0x": offset = int.parse offset-string[2..] --radix=16
-      else: offset = int.parse offset-string
+      else if offset-string.starts-with "0x": 
+        offset = int.parse offset-string[2..] --radix=16
+      else: 
+        offset = int.parse offset-string
 
       size-string := parts[4]
       size/int := ?
