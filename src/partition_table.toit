@@ -213,6 +213,9 @@ class PartitionTable:
     //    ota_1,    app,  ota_1,    0x1b0000,  0x1a0000,
     //    nvs,      data, nvs,      0x350000,  0x010000,
     //    programs, 0x40, 0x00,     0x360000,  0x0a0000, encrypted
+    //
+    // Offsets may be missing, in which case they are calculated from the
+    // previous entry.
 
     table := PartitionTable
 
@@ -221,6 +224,7 @@ class PartitionTable:
       trimmed := line.trim
       trimmed != "" and trimmed[0] != '#'
 
+    next-computed-offset/int? := null
     lines.do: | line/string |
       parts := line.split ","
       if parts.size < 5: throw "Malformed CSV line"
@@ -244,13 +248,20 @@ class PartitionTable:
 
       offset-string := parts[3]
       offset/int := ?
-      if offset-string.starts-with "0x": offset = int.parse offset-string[2..] --radix=16
-      else: offset = int.parse offset-string
+      if offset-string == "":
+        if not next-computed-offset: throw "Missing initial offset"
+        offset = next-computed-offset
+      else if offset-string.starts-with "0x": 
+        offset = int.parse offset-string[2..] --radix=16
+      else: 
+        offset = int.parse offset-string
 
       size-string := parts[4]
       size/int := ?
       if size-string.starts-with "0x": size = int.parse size-string[2..] --radix=16
       else: size = int.parse size-string
+
+      next-computed-offset = offset + size
 
       flags/int := 0
       flag-strings := parts.size > 5 ? parts[5].split "+" : []
