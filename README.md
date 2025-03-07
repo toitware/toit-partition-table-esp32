@@ -13,7 +13,7 @@ import partition-table show *
 import host.file
 
 main:
-  table-bytes := file.read-content "partitions.bin"
+  table-bytes := file.read-contents "partitions.bin"
   table := PartitionTable.decode table-bytes
   table.do: | partition/Partition |
     print partition.name
