@@ -27,7 +27,7 @@ class Esptool:
     with-tmp-directory: | tmp-dir/string |
       out := "$tmp-dir/out.bin"
       read-flash --offset=offset --size=size --out=out
-      return file.read-content out
+      return file.read-contents out
     unreachable
 
   read-flash --offset/int --size/int --out/string:
@@ -59,7 +59,7 @@ class Esptool:
   write-flash --offset/int --bytes/ByteArray:
     with-tmp-directory: | tmp-dir/string |
       in := "$tmp-dir/in.bin"
-      file.write-content --path=in bytes
+      file.write-contents --path=in bytes
       write-flash --offset=offset --path=in
 
   run_ args/List:
