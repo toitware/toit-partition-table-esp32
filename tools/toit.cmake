@@ -32,12 +32,12 @@ endif()
 
 # Creates a custom command to build ${TARGET} with correct dependencies.
 function(ADD_TOIT_SNAPSHOT SOURCE TARGET DEP_FILE ENV)
-  if (NOT DEFINED TOITC)
-    set(TOITC "$ENV{TOITC}")
-    if ("${TOITC}" STREQUAL "")
-      # TOITC is normally set to the toit.compile executable.
+  if (NOT DEFINED TOIT)
+    set(TOIT "$ENV{TOIT}")
+    if ("${TOIT}" STREQUAL "")
+      # TOIT is normally set to the toit executable.
       # However, for cross-compilation the compiler must be provided manually.
-      message(FATAL_ERROR "TOITC not provided")
+      message(FATAL_ERROR "TOIT not provided")
     endif()
   endif()
   if(POLICY CMP0116)
@@ -47,7 +47,13 @@ function(ADD_TOIT_SNAPSHOT SOURCE TARGET DEP_FILE ENV)
     OUTPUT "${TARGET}"
     DEPFILE ${DEP_FILE}
     DEPENDS download_packages "${SOURCE}"
-    COMMAND ${CMAKE_COMMAND} -E env ${ENV} ASAN_OPTIONS=detect_leaks=false "${TOITC}" --dependency-file "${DEP_FILE}" --dependency-format ninja -w "${TARGET}" "${SOURCE}"
+    COMMAND ${CMAKE_COMMAND} -E env ${ENV} ASAN_OPTIONS=detect_leaks=false
+        "${TOIT}" compile
+        --snapshot
+        --dependency-file "${DEP_FILE}"
+        --dependency-format ninja
+        -o "${TARGET}"
+        "${SOURCE}"
   )
 endfunction(ADD_TOIT_SNAPSHOT)
 
@@ -70,7 +76,6 @@ function(ADD_TOIT_EXE SOURCE TARGET DEP_FILE ENV)
     DEPENDS download_packages "${SOURCE}"
     COMMAND ${CMAKE_COMMAND} -E env ${ENV} ASAN_OPTIONS=detect_leaks=false
         "${TOIT}" compile
-        --snapshot
         --dependency-file "${DEP_FILE}"
         --dependency-format ninja
         -o "${TARGET}"
