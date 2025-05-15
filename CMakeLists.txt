@@ -6,16 +6,11 @@ cmake_minimum_required(VERSION 3.23)
 
 project(partition-table)
 
-set(TOITPKG
-    "toit.pkg${CMAKE_EXECUTABLE_SUFFIX}"
+set(TOIT
+    "toit${CMAKE_EXECUTABLE_SUFFIX}"
     CACHE
     FILEPATH
-    "The executable used to install packages")
-set(TOITC
-    "toit.compile${CMAKE_EXECUTABLE_SUFFIX}"
-    CACHE
-    FILEPATH
-    "The executable used to compile programs and check the syntax")
+    "The executable used to compile, run, and install packages")
 
 set(DEFAULT_SDK_VERSION CACHE STRING "The default SDK version to use")
 

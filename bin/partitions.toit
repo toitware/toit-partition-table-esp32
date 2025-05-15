@@ -23,23 +23,23 @@ main args:
     print-version
 
   cmd := cli.Command "partitions"
-      --short-help="A tool to manage OTA partitions on the ESP32."
+      --help="A tool to manage OTA partitions on the ESP32."
       --options=[
         cli.Option "esptool"
-            --short-help="Path to esptool.py.",
+            --help="Path to esptool.py.",
         cli.Option "port"
             --short-name="p"
-            --short-help="Serial port to use.",
+            --help="Serial port to use.",
         cli.Option "partition-table-offset"
-            --short-help="Offset of the partition table."
+            --help="Offset of the partition table."
             --default="0x8000",
         cli.Option "partition-table-size"
-            --short-help="Size of the partition table."
+            --help="Size of the partition table."
             --default="0xc00",
       ]
 
   print-partitions-cmd := cli.Command "print-partitions"
-      --short-help="Print the partition table."
+      --help="Print the partition table."
       --examples=[
         cli.Example "Print the partition table:"
             --global-priority=1
@@ -49,7 +49,7 @@ main args:
   cmd.add print-partitions-cmd
 
   print-otadata-cmd := cli.Command "print-otadata"
-      --short-help="Print the otadata partition."
+      --help="Print the otadata partition."
       --examples=[
         cli.Example "Print the otadata partition:"
             --global-priority=1
@@ -59,16 +59,16 @@ main args:
   cmd.add print-otadata-cmd
 
   read-cmd := cli.Command "read"
-      --short-help="Reads a partition from the flash."
+      --help="Reads a partition from the flash."
       --options=[
         cli.Option "out"
             --short-name="o"
-            --short-help="Output file."
+            --help="Output file."
             --required,
       ]
       --rest=[
         cli.Option "partition"
-            --short-help="Partition to read."
+            --help="Partition to read."
             --required
       ]
       --examples=[
@@ -80,16 +80,16 @@ main args:
   cmd.add read-cmd
 
   write-cmd := cli.Command "write"
-      --short-help="Writes a partition to the flash."
+      --help="Writes a partition to the flash."
       --options=[
         cli.Option "in"
             --short-name="i"
-            --short-help="Input file."
+            --help="Input file."
             --required,
       ]
       --rest=[
         cli.Option "partition"
-            --short-help="Partition to write."
+            --help="Partition to write."
             --required
       ]
       --examples=[
@@ -101,20 +101,20 @@ main args:
   cmd.add write-cmd
 
   set-ota-state-cmd := cli.Command "set-ota-state"
-      --short-help="Sets the partition's state."
+      --help="Sets the partition's state."
       --options=[
         cli.Flag "make-active"
-            --short-help="Make the partition active by changing the sequence number."
+            --help="Make the partition active by changing the sequence number."
             --default=true,
         cli.OptionEnum "state" ["new", "pending-verify", "valid", "aborted", "undefined"]
-            --short-help="The new state of the partition."
+            --help="The new state of the partition."
             --default="valid",
         cli.OptionInt "select-entry"
-            --short-help="The select entry to update. (default: 0 for ota_0, 1 for ota_1)"
+            --help="The select entry to update. (default: 0 for ota_0, 1 for ota_1)"
       ]
       --rest=[
         cli.Option "partition"
-            --short-help="Partition to set as boot."
+            --help="Partition to set as boot."
             --required,
       ]
       --examples=[
@@ -126,7 +126,7 @@ main args:
   cmd.add set-ota-state-cmd
 
   version-cmd := cli.Command "version"
-      --short-help="Print the version and exit."
+      --help="Print the version and exit."
       --run=:: print-version
 
   cmd.run args

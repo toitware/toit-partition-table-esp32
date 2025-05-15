@@ -7,8 +7,7 @@ toit_project(tests "${CMAKE_CURRENT_LIST_DIR}")
 file(GLOB TESTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_test.toit" "*-test.toit" "*_test_slow.toit" "*-test-slow.toit")
 
 # Add windows exe extension.
-set(TOIT_EXEC "toit.run${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to run the tests")
-set(TPKG_EXEC "toit.pkg${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to install the packages")
+set(TOIT_EXEC "toit${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "The executable used to run the tests")
 set(TEST_TIMEOUT 40 CACHE STRING "The maximal amount of time each test is allowed to run")
 set(SLOW_TEST_TIMEOUT 200 CACHE STRING "The maximal amount of time each slow test is allowed to run")
 
@@ -39,7 +38,7 @@ foreach(file ${TESTS})
 
   add_test(
     NAME "${test_name}"
-    COMMAND "${TOIT_EXEC}" "tests/${file}"
+    COMMAND "${TOIT_EXEC}" run "tests/${file}"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
 
