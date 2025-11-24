@@ -48,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Toit
         shell: bash
@@ -136,7 +136,7 @@ jobs:
     needs: [build]
     if: github.event_name == 'release' || inputs.sign_macos
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v6
         with:
